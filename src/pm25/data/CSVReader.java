@@ -2,68 +2,66 @@ package pm25.data;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class CSVReader {
-	public static void main(String[] args) {
-		CSVReader reader = new CSVReader("C:\\ng\\pm_2_5_analytic\\data");
-		reader.storeIntoDB();
-	}
+    public static void main(String[] args) {
+        CSVReader reader = new CSVReader("C:\\ng\\pm_2_5_analytic\\data");
+        reader.storeIntoDB();
+    }
 
-	public CSVReader(String folderName) {
-		try {
-			Files.walk(Paths.get(folderName)).forEach(filePath -> {
-				if (Files.isRegularFile(filePath)) {
-					System.out.println(filePath);
-					filePath.endsWith(".csv");
-				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    public CSVReader(String folderName) {
+        try {
+            Files.walk(Paths.get(folderName)).forEach(filePath -> {
+                if (Files.isRegularFile(filePath) && filePath.toUri().getRawPath().endsWith(".csv")) {
+                    readFile(filePath.toUri().getRawPath());
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	private void readFile(String fileName) {
-		String csvFile = fileName;
-		BufferedReader br = null;
-		String line = "";
-		String cvsSplitBy = ",";
+    private void readFile(String fileName) {
+        String csvFile = fileName;
+        BufferedReader br = null;
+        String line = "";
+        String cvsSplitBy = ",";
+        File file = null;
 
-		try {
+        try {
+            file = new File(csvFile);
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
+            while ((line = br.readLine()) != null) {
+                // use comma as separator
+                String[] country = line.split(cvsSplitBy);
+                System.out.println(line);
+            }
 
-			br = new BufferedReader(new FileReader(csvFile));
-			while ((line = br.readLine()) != null) {
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-				// use comma as separator
-				String[] country = line.split(cvsSplitBy);
+        System.out.println("Done");
+    }
 
-				System.out.println("Country [code= " + country[4] + " , name="
-						+ country[5] + "]");
-
-			}
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		System.out.println("Done");
-	}
-
-	public boolean storeIntoDB() {
-		return true;
-	}
+    public boolean storeIntoDB() {
+        return true;
+    }
 }
